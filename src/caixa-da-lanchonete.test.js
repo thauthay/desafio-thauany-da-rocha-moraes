@@ -48,4 +48,11 @@ describe('CaixaDaLanchonete', () => {
         ['queijo com outro item', 'debito', 'Item extra não pode ser pedido sem o principal', ['cafe,1', 'queijo,1']],
     ])('compra %p em %p deve resultar em %p', (_, formaDePagamento, resultadoEsperado, itens) =>
         validaTeste(formaDePagamento, resultadoEsperado, itens));
+
+    test.each([
+        ['dinheiro', 'R$ 9,03', ['combo1,1']],
+        ['credito', 'R$ 9,79', ['combo1,1']],
+        ['debito', 'R$ 9,50', ['combo1,1']],
+    ])('compra de combo em %p deve resultar em %p', validaTeste);
+        
 });
