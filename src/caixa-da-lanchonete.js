@@ -1,29 +1,20 @@
 const { Produto } = require("./models/produto.js");
+const { FormaPagamento } = require("./models/forma-de-pagamento.js");
+const { ExtrasEspecificos } = require("./models/extras-especificos.js");
 const { MensagensDeErro } = require("./exceptions/mensagens-de-erro.js");
 
 class CaixaDaLanchonete {
 
     constructor() {
         this.produtos = new Produto();
-
-        this.formasDePagamento = {
-            dinheiro: 0.95,
-            credito: 1.03,
-            debito: 1.00,
-        };
-
-        this.extraValidations = {
-            chantily: { requires: 'cafe' },
-            queijo: { requires: 'sanduiche' }
-        };
-
-        this.itensPrincipais = new Set(Object.keys(this.produtos.principais));
+        this.formasDePagamento = new FormaPagamento();
+        this.extrasEspecificos = new ExtrasEspecificos();
         this.errors = new MensagensDeErro();
     }
 
     calcularValorDaCompra(formaDePagamento, itens) {
 
-        if(!this.validaFormaDePagamento(formaDePagamento))
+        if(!this.formasDePagamento.validaFormaDePagamento(formaDePagamento))
             return this.errors.formaDePagamento;
 
         if(itens.length == 0)
@@ -31,11 +22,9 @@ class CaixaDaLanchonete {
 
         let valorTotal = 0;
         const quantidadeItens = {};
-
         for (const itemInfo of itens) {
 
-            const [codigoItem, quantidadeItem] = itemInfo.split(",");
-            const quantidade = parseInt(quantidadeItem);
+            const [codigoItem, quantidade] = itemInfo.split(",");
             if(!this.validaQuantidadeItem(quantidade)){
 
                 if(formaDePagamento == 'credito')
@@ -49,7 +38,7 @@ class CaixaDaLanchonete {
              else if (this.produtos.combos[codigoItem]) 
                 valorTotal += this.produtos.combos[codigoItem] * quantidade;
              else if (this.produtos.extras[codigoItem]) {
-                if(!this.validaExtras(quantidadeItens, codigoItem))
+                if(!this.extrasEspecificos.validaExtras(quantidadeItens, codigoItem))
                     return this.errors.itemExtra;
                 valorTotal += this.produtos.extras[codigoItem] * quantidade;
             } else 
@@ -65,23 +54,8 @@ class CaixaDaLanchonete {
         return this.formatarValorTotal(valorTotal);
     }
 
-    validaExtras(quantidadeItens, codigoItem){
-        if (this.extraValidations[codigoItem]) {
-            const requiredcodigoItem = this.extraValidations[codigoItem].requires;
-            if (!quantidadeItens[requiredcodigoItem]) 
-                return false;
-        }
-        return true;
-    }
-
     validaQuantidadeItem(quantidade){
         if (!quantidade || quantidade <= 0) 
-            return false;
-        return true;
-    }
-
-    validaFormaDePagamento(formaDePagamento){
-        if (!this.formasDePagamento.hasOwnProperty(formaDePagamento))
             return false;
         return true;
     }

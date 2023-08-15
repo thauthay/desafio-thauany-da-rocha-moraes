@@ -1,5 +1,4 @@
 class MensagensDeErro {
-
     constructor() {
         this.formaDePagamento = "Forma de pagamento inválida!";
         this.itensSize = "Não há itens no carrinho de compra!";
