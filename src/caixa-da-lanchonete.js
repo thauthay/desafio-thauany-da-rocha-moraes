@@ -23,34 +23,31 @@ class CaixaDaLanchonete {
         let valorTotal = 0;
         const quantidadeItens = {};
         for (const itemInfo of itens) {
-
             const [codigoItem, quantidade] = itemInfo.split(",");
-            if(!this.validaQuantidadeItem(quantidade)){
-
-                if(formaDePagamento == 'credito')
-                    return this.errors.itemInvalido;
-                else
-                    return this.errors.quantidadeInvalida;
+    
+            if (!this.validaQuantidadeItem(quantidade)) {
+                const erroQuantidade = formaDePagamento === 'credito' ? this.errors.itemInvalido : this.errors.quantidadeInvalida;
+                return erroQuantidade;
             }
-
-            if (this.produtos.principais[codigoItem]) 
-                valorTotal += this.produtos.principais[codigoItem] * quantidade;
-             else if (this.produtos.combos[codigoItem]) 
-                valorTotal += this.produtos.combos[codigoItem] * quantidade;
-             else if (this.produtos.extras[codigoItem]) {
-                if(!this.extrasEspecificos.validaExtras(quantidadeItens, codigoItem))
+    
+            const valorProdutoPrincipal = this.produtos.principais[codigoItem];
+            const valorProdutoCombo = this.produtos.combos[codigoItem];
+            const valorProdutoExtra = this.produtos.extras[codigoItem];
+    
+            if (valorProdutoPrincipal !== undefined) 
+                valorTotal += valorProdutoPrincipal * quantidade;
+            else if (valorProdutoCombo !== undefined)
+                valorTotal += valorProdutoCombo * quantidade;
+            else if (valorProdutoExtra !== undefined) {
+                if (!this.extrasEspecificos.validaExtras(quantidadeItens, codigoItem))
                     return this.errors.itemExtra;
-                valorTotal += this.produtos.extras[codigoItem] * quantidade;
-            } else 
+                valorTotal += valorProdutoExtra * quantidade;
+            } else
                 return this.errors.itemInvalido;
-
-            if (!quantidadeItens[codigoItem]) 
-                quantidadeItens[codigoItem] = 0;
-
-            quantidadeItens[codigoItem] += quantidade;
+            
+            quantidadeItens[codigoItem] = (quantidadeItens[codigoItem] || 0) + quantidade;
         }
         valorTotal *= this.formasDePagamento[formaDePagamento];
-
         return this.formatarValorTotal(valorTotal);
     }
 
